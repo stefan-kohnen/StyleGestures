@@ -34,6 +34,12 @@ def import_and_pad(files, speech_data):
         fi+=1
         
     return out_data
+
+def standardize(data, scaler):
+    shape = data.shape
+    flat = data.copy().reshape((shape[0]*shape[1], shape[2]))
+    scaled = scaler.transform(flat).reshape(shape)
+    return scaled
     
 if __name__ == "__main__":
     '''
