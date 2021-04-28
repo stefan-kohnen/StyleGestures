@@ -1,6 +1,6 @@
 {
   "Dir": {
-    "data_root": "data/GENEA/processed",
+    "data_root": "data/GENEA/processed_notext",
     "log_root": "results/GENEA"
   },
   "Glow": {
@@ -40,9 +40,9 @@
   },
   "Device": {
     "glow": [
-      "cuda:7"
+      "cuda:0"
     ],
-    "data": "cuda:7"
+    "data": "cuda:0"
   },
   "Train": {
     "batch_size": 80,
