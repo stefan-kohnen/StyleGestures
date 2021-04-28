@@ -1,6 +1,6 @@
 {
   "Dir": {
-    "data_root": "data/GENEA/processed/test",
+    "data_root": "data/GENEA/processed_notext",
     "log_root": "results/GENEA"
   },
   "Glow": {
@@ -45,7 +45,7 @@
     "data": "cuda:0"
   },
   "Train": {
-    "batch_size": 80,
+    "batch_size": 10,
     "num_batches": 80000,
     "max_grad_clip": 5,
     "max_grad_norm": 100,
@@ -58,6 +58,6 @@
     "warm_start": ""
   },
   "Infer": {
-    "pre_trained": "results/GENEA/log_20210201_1738/checkpoints/trained.pkg"
+    "pre_trained": ""
   }
 }
