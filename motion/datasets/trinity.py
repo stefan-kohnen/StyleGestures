@@ -5,6 +5,7 @@ import joblib as jl
 from .motion_data import MotionDataset, TestDataset
 from torch.utils.data import Dataset
 from sklearn.preprocessing import StandardScaler
+import gc  # garbage collector
 
 module_path = os.path.abspath(os.path.join('data_processing'))
 if module_path not in sys.path:
@@ -13,7 +14,7 @@ from pymo.writers import *
 
 def inv_standardize(data, scaler):      
     shape = data.shape
-    flat = data.copy().reshape((shape[0]*shape[1], shape[2]))
+    flat = data.reshape((shape[0]*shape[1], shape[2]))
     scaled = scaler.inverse_transform(flat).reshape(shape)
     return scaled        
                 
@@ -33,33 +34,33 @@ class Trinity():
         if is_training:
         
             #load the data. This should allready be Standartized
-            train_input = np.load(os.path.join(data_root, 'train_input_'+str(hparams.Data.framerate)+'fps.npz'))['clips'].astype(np.float32)
-            train_output = np.load(os.path.join(data_root, 'train_output_'+str(hparams.Data.framerate)+'fps.npz'))['clips'].astype(np.float32)
-            val_input = np.load(os.path.join(data_root, 'val_input_'+str(hparams.Data.framerate)+'fps.npz'))['clips'].astype(np.float32)
-            val_output = np.load(os.path.join(data_root, 'val_output_'+str(hparams.Data.framerate)+'fps.npz'))['clips'].astype(np.float32)
+            train_input = np.load(os.path.join(data_root, 'train_input_'+str(hparams.Data.framerate)+'fps.npz'))['clips'].astype(np.float16)
+            train_output = np.load(os.path.join(data_root, 'train_output_'+str(hparams.Data.framerate)+'fps.npz'))['clips'].astype(np.float16)
+            val_input = np.load(os.path.join(data_root, 'val_input_'+str(hparams.Data.framerate)+'fps.npz'))['clips'].astype(np.float16)
+            val_output = np.load(os.path.join(data_root, 'val_output_'+str(hparams.Data.framerate)+'fps.npz'))['clips'].astype(np.float16)
 
             # Create pytorch data sets
             self.train_dataset = MotionDataset(train_input, train_output, hparams.Data.seqlen, hparams.Data.n_lookahead, hparams.Data.dropout)    
             self.validation_dataset = MotionDataset(val_input, val_output, hparams.Data.seqlen, hparams.Data.n_lookahead, hparams.Data.dropout)    
             
             #test data for network tuning. It contains the same data as val_input, but sliced into longer 20-sec exerpts
-            test_input = np.load(os.path.join(data_root, 'dev_input_'+str(hparams.Data.framerate)+'fps.npz'))['clips'].astype(np.float32)                                   
+            test_input = np.load(os.path.join(data_root, 'dev_input_'+str(hparams.Data.framerate)+'fps.npz'))['clips'].astype(np.float16)                                   
             
         else:
             self.train_dataset = None
             self.validation_dataset = None
             #use this to generate test data for evaluation.
-            test_input = np.load(os.path.join(data_root, 'test_input_'+str(hparams.Data.framerate)+'fps.npz'))['clips'].astype(np.float32)
+            test_input = np.load(os.path.join(data_root, 'test_input_'+str(hparams.Data.framerate)+'fps.npz'))['clips'].astype(np.float16)
                        
         # make sure the test data is at least one batch size
         self.n_test = test_input.shape[0]
         n_tiles = 1+hparams.Train.batch_size//self.n_test
-        test_input = np.tile(test_input.copy(), (n_tiles,1,1))
+        test_input = np.tile(test_input, (n_tiles,1,1))
 
         # initialise test output with zeros (mean pose)
         self.n_x_channels = self.output_scaler.mean_.shape[0]
         self.n_cond_channels = self.n_x_channels*hparams.Data.seqlen + test_input.shape[2]*(hparams.Data.seqlen + 1 + hparams.Data.n_lookahead)
-        test_output = np.zeros((test_input.shape[0], test_input.shape[1], self.n_x_channels)).astype(np.float32)
+        test_output = np.zeros((test_input.shape[0], test_input.shape[1], self.n_x_channels)).astype(np.float16)
                         
         self.test_dataset = TestDataset(test_input, test_output)
         

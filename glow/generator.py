@@ -58,7 +58,7 @@ class Generator(object):
             
         nn,n_timesteps,n_feats = autoreg_all.shape
         sampled_all = np.zeros((nn, n_timesteps-n_lookahead, n_feats))
-        autoreg = np.zeros((nn, seqlen, n_feats), dtype=np.float32) #initialize from a mean pose
+        autoreg = np.zeros((nn, seqlen, n_feats), dtype=np.float16) #initialize from a mean pose
         sampled_all[:,:seqlen,:] = autoreg
         
         # Loop through control sequence and generate new data

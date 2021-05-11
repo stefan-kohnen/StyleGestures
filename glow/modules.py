@@ -221,7 +221,7 @@ class InvertibleConv1x1(nn.Module):
     def __init__(self, num_channels, LU_decomposed=False):
         super().__init__()
         w_shape = [num_channels, num_channels]
-        w_init = np.linalg.qr(np.random.randn(*w_shape))[0].astype(np.float32)
+        w_init = np.linalg.qr(np.random.randn(*w_shape))[0].astype(np.float16)
         if not LU_decomposed:
             # Sample a random orthogonal matrix:
             self.register_parameter("weight", nn.Parameter(torch.Tensor(w_init)))
@@ -231,16 +231,16 @@ class InvertibleConv1x1(nn.Module):
             np_sign_s = np.sign(np_s)
             np_log_s = np.log(np.abs(np_s))
             np_u = np.triu(np_u, k=1)
-            l_mask = np.tril(np.ones(w_shape, dtype=np.float32), -1)
-            eye = np.eye(*w_shape, dtype=np.float32)
+            l_mask = np.tril(np.ones(w_shape, dtype=np.float16), -1)
+            eye = np.eye(*w_shape, dtype=np.float16)
 
-            #self.p = torch.Tensor(np_p.astype(np.float32))
-            #self.sign_s = torch.Tensor(np_sign_s.astype(np.float32))
-            self.register_buffer('p', torch.Tensor(np_p.astype(np.float32)))
-            self.register_buffer('sign_s', torch.Tensor(np_sign_s.astype(np.float32)))
-            self.l = nn.Parameter(torch.Tensor(np_l.astype(np.float32)))
-            self.log_s = nn.Parameter(torch.Tensor(np_log_s.astype(np.float32)))
-            self.u = nn.Parameter(torch.Tensor(np_u.astype(np.float32)))
+            #self.p = torch.Tensor(np_p.astype(np.float16))
+            #self.sign_s = torch.Tensor(np_sign_s.astype(np.float16))
+            self.register_buffer('p', torch.Tensor(np_p.astype(np.float16)))
+            self.register_buffer('sign_s', torch.Tensor(np_sign_s.astype(np.float16)))
+            self.l = nn.Parameter(torch.Tensor(np_l.astype(np.float16)))
+            self.log_s = nn.Parameter(torch.Tensor(np_log_s.astype(np.float16)))
+            self.u = nn.Parameter(torch.Tensor(np_u.astype(np.float16)))
             self.l_mask = torch.Tensor(l_mask)
             self.eye = torch.Tensor(eye)
         self.w_shape = w_shape
@@ -439,7 +439,7 @@ class StudentT:
         x_shape = torch.Size((z_shape[0], 1, z_shape[2]))
         x = np.random.chisquare(self.df, x_shape)/self.df
         x = np.tile(x, (1,z_shape[1],1))
-        x = torch.Tensor(x.astype(np.float32))
+        x = torch.Tensor(x.astype(np.float16))
         z = torch.normal(mean=torch.zeros(z_shape),std=torch.ones(z_shape) * eps_std)
         
         return (z/torch.sqrt(x)).to(device)

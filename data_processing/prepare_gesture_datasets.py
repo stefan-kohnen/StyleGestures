@@ -76,7 +76,7 @@ def slice_data(data, window_size, overlap):
     overlap_frames = (int)(overlap*window_size)
     
     n_sequences = (nframes-overlap_frames)//(window_size-overlap_frames)
-    sliced = np.zeros((n_sequences, window_size, data.shape[1])).astype(np.float32)
+    sliced = np.zeros((n_sequences, window_size, data.shape[1])).astype(np.float16)
     
     if n_sequences>0:
 
@@ -108,17 +108,21 @@ def import_data(file, motion_path, speech_data, transcript_path, style_path, mir
     if mirror:
         suffix="_mirrored"
         
-    motion_data = np.load(os.path.join(motion_path, file + suffix + '.npz'))['clips'].astype(np.float32)        
+    motion_data = np.load(os.path.join(motion_path, file + suffix + '.npz'))['clips'].astype(np.float16)        
     n_motion_feats = motion_data.shape[1]
 
-    speech_data = np.load(os.path.join(speech_path, file + '.npy')).astype(np.float32)
+    speech_data = np.load(os.path.join(speech_path, file + '.npy')).astype(np.float16)
 
-    transcript_data = np.load(os.path.join(transcript_path, file + '.npy')).astype(np.float32)
+    transcript_data = np.load(os.path.join(transcript_path, file + '.npy')).astype(np.float16)
     
     if style_path is not None:
-        style_data = np.load(os.path.join(style_path, file + suffix + '.npy')).astype(np.float32)
+        print("Style Data has been found. Use as additional control data.")
+        style_data = np.load(os.path.join(style_path, file + suffix + '.npy')).astype(np.float16)
         control_data = align(speech_data,style_data[:])  # TODO adapt align(..) to use 3 arguments s.t. transcript can be used, too
+        # NOTE don't think the next line is correct, so think about it again        
+        # control_data = align(control_data, transcript_data[:])  # TODO Test if this does the trick already 
     else:
+        print("No Style Data found. Use speech and transcript only.")
         control_data = align(speech_data, transcript_data[:])  # TODO: why the colon?
         
     concat_data = align(motion_data, control_data)
@@ -233,7 +237,7 @@ if __name__ == "__main__":
     if not os.path.exists(transcript_path):
         print('Processing transcript features...')
         os.makedirs(transcript_path)
-        extract_bert_features(textpath, files, transcript_path, fps)  # TODO: implement (`fps` needs to be used?)
+        extract_bert_features(textpath, files, transcript_path, fps)
     else:
         print('Found transcript features. skipping processing...')
         
