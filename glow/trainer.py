@@ -100,11 +100,30 @@ class Trainer(object):
 
         self.global_step = self.loaded_step
 
+        # use gradient accumulation TODO test for correction
+        eff_batch_size = 80
+        acc_steps = int(eff_batch_size / self.batch_size)
+        print(f"Using {acc_steps} as the default number of steps for gradient accumulation. Effective batch size: {acc_steps * self.batch_size}")
+                
+        # debug (deprecated)
+        #print(f"#batches per epoch: {len(self.data_loader)}"
+        #assert len(self.data_loader) % acc_steps == 0, f"#batches per epoch ({len(self.data_loader)}) not dividable by {acc_steps}"
+        
         # begin to train
         for epoch in range(self.n_epoches):
             print("epoch", epoch)
             progress = tqdm(self.data_loader)
+            #curr_acc_steps = acc_steps
             for i_batch, batch in enumerate(progress):
+                # TODO only do the following block(s) if gradient is zero (i.e., we start a new pack of batches)
+                if i_batch % acc_steps == 0:
+                    if len(self.data_loader) - i_batch >= acc_steps:
+                        curr_acc_steps = acc_steps
+                    # we are processing the last pack of batches
+                    elif curr_acc_steps == acc_steps:  # only decrease curr_acc_steps if we haven't decreased it yet
+                        curr_acc_steps = len(self.data_loader) - i_batch
+                        print(f"Last pack: Set curr_acc_steps to {curr_acc_steps}.")
+                
 
                 # set to training state
                 self.graph.train()
@@ -158,11 +177,11 @@ class Trainer(object):
                 loss_classes = 0
                 if self.global_step % self.scalar_log_gaps == 0:
                     self.writer.add_scalar("loss/loss_generative", loss_generative, self.global_step)
-                loss = loss_generative
+                loss = loss_generative / curr_acc_steps  # TODO TODO (!!!) should this indeed be averaged or not?
+                #if curr_acc_steps < acc_steps:
+                    #print(f"Computation: loss_generative/{curr_acc_steps}")
 
                 # backward
-                self.graph.zero_grad()
-                self.optim.zero_grad()
                 loss.backward()
 
                 # operate grad
@@ -172,8 +191,24 @@ class Trainer(object):
                     grad_norm = torch.nn.utils.clip_grad_norm_(self.graph.parameters(), self.max_grad_norm)
                     if self.global_step % self.scalar_log_gaps == 0:
                         self.writer.add_scalar("grad_norm/grad_norm", grad_norm, self.global_step)
-                # step
-                self.optim.step()
+
+                if (curr_acc_steps == acc_steps and (i_batch+1) % curr_acc_steps == 0) or \
+                   (curr_acc_steps < acc_steps and (i_batch+1) == len(self.data_loader)):
+                    # step
+                    self.optim.step()
+                    self.graph.zero_grad()
+                    self.optim.zero_grad()
+                    print(f"Call optim.step() for batch with index {i_batch}")
+                    if curr_acc_steps < acc_steps:
+                        print(f"Call optim.step() for last batch of epoch")
+                '''
+                else:  # curr_acc_steps < acc_steps, which means we are processing the last pack of batches
+                    if (i_batch+1) == len(self.data_loader):
+                        # step 
+                        self.optim.step()
+                        self.graph.zero_grad()
+                        self.optim.zero_grad()
+                '''
 
                 if self.global_step % self.validation_log_gaps == 0:
                     # set to eval state
