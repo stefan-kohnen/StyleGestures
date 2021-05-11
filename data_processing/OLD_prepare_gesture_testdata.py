@@ -5,23 +5,11 @@ import os
 import sys
 from shutil import copyfile
 from audio_features import extract_melspec
-from text_features import extract_bert_features
 import scipy.io.wavfile as wav
 import joblib as jl
 
-
-def align(data1, data2):
-    """Truncates to the shortest length and concatenates"""
-    
-    nframes1 = data1.shape[0]
-    nframes2 = data2.shape[0]
-    if nframes1<nframes2:
-        return np.concatenate((data1, data2[:nframes1,:]), axis=1)
-    else:
-        return np.concatenate((data1[:nframes2,:], data2), axis=1)
-        
             
-def import_and_pad(files, speech_data, transcript_path):
+def import_and_pad(files, speech_data):
     """Imports all features and pads them to samples with equal lenth time [samples, timesteps, features]."""
                     
     max_frames = 0
@@ -30,13 +18,10 @@ def import_and_pad(files, speech_data, transcript_path):
         
         # compute longest clip
         speech_data = np.load(os.path.join(speech_path, file + '.npy')).astype(np.float32)
-        transcript_data = np.load(os.path.join(transcript_path, file + '.npy')).astype(np.float32)
-        control_data = align(speech_data, transcript_data[:])
-        
-        if control_data.shape[0]>max_frames:
-            max_frames = control_data.shape[0]
+        if speech_data.shape[0]>max_frames:
+            max_frames = speech_data.shape[0]
             
-        n_feats = control_data.shape[1]
+        n_feats = speech_data.shape[1]
             
     out_data = np.zeros((len(files), max_frames, n_feats))
     
@@ -44,10 +29,7 @@ def import_and_pad(files, speech_data, transcript_path):
     for file in files:        
         # pad to longest clip length
         speech_data = np.load(os.path.join(speech_path, file + '.npy')).astype(np.float32)
-        transcript_data = np.load(os.path.join(transcript_path, file + '.npy')).astype(np.float32)
-        control_data = align(speech_data, transcript_data[:])
-
-        out_data[fi,:control_data.shape[0], :] = control_data
+        out_data[fi,:speech_data.shape[0], :] = speech_data
         print("No: " + str(fi) + " File: " + file)
         fi+=1
         
@@ -71,9 +53,8 @@ if __name__ == "__main__":
 
     data_root = '../data/GENEA/source'
     audiopath = os.path.join(data_root, 'test_audio')
-    textpath = os.path.join(data_root, 'test_text')
-    processed_dir = '../data/GENEA/with_text/processed_1stduplicationmethod'
-    test_dir = '../data/GENEA/with_text/processed_1stduplicationmethod/test'
+    processed_dir = '../data/GENEA/processed'
+    test_dir = '../data/GENEA/processed/test'
     
     files = []
     
@@ -90,20 +71,16 @@ if __name__ == "__main__":
         print ("no files found in: " + audiopath)
     
     speech_feat = 'melspec'
-    transcript_feat = 'bert'
-
+    
     # processed data will be organized as following
     if not os.path.exists(test_dir):
         os.makedirs(test_dir)
         
     path = os.path.join(test_dir, f'features_{fps}fps')
     speech_path = os.path.join(path, f'{speech_feat}')
-    transcript_path = os.path.join(path, f'{transcript_feat}')
-
 
     if not os.path.exists(path):
         os.makedirs(path)
-
         
     # speech features
     if not os.path.exists(speech_path):
@@ -111,20 +88,12 @@ if __name__ == "__main__":
         os.makedirs(speech_path)
         extract_melspec(audiopath, files, speech_path, fps)
     else:
-        print('Found speech features. skipping processing...')
-
-    # transcript features
-    if not os.path.exists(transcript_path):
-        print('Processing transcript features...')
-        os.makedirs(transcript_path)
-        extract_bert_features(textpath, files, transcript_path, fps)
-    else:
-        print('Found transcript features. skipping processing...')
+        print('Found speech features. skipping processing...')    
     
     # Create test dataset
     print("Preparing datasets...")
         
-    test_ctrl = import_and_pad(files, speech_path, transcript_path)
+    test_ctrl = import_and_pad(files, speech_path)
     
     ctrl_scaler = jl.load(os.path.join(processed_dir, 'input_scaler.sav'))
     test_ctrl = standardize(test_ctrl, ctrl_scaler)
