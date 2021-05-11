@@ -1,6 +1,6 @@
 {
   "Dir": {
-    "data_root": "data/GENEA/with_text/processed_reducedset",
+    "data_root": "data/GENEA/with_text/processed_duplicationAsInGesticulator",
     "log_root": "results/GENEA/expe_acc_grad"
   },
   "Glow": {
@@ -46,16 +46,16 @@
   },
   "Train": {
     "batch_size": 10,
-    "num_batches": 800,
+    "num_batches": 80000,
     "max_grad_clip": 5,
     "max_grad_norm": 100,
-    "max_checkpoints": 4,
-    "checkpoints_gap": 400,
+    "max_checkpoints": 2,
+    "checkpoints_gap": 20000,
     "num_plot_samples": 1,
     "scalar_log_gap": 50,
-    "validation_log_gap": 50,
-    "plot_gap": 400,
-    "warm_start": ""
+    "validation_log_gap": 500,
+    "plot_gap": 20000,
+    "warm_start": "results/GENEA/expe_acc_grad/log_20210507_1337/checkpoints/trained.pkg"
   },
   "Infer": {
     "pre_trained": ""
