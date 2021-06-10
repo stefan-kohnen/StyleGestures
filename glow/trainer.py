@@ -101,7 +101,7 @@ class Trainer(object):
         self.global_step = self.loaded_step
 
         # use gradient accumulation TODO test for correction
-        eff_batch_size = 80
+        eff_batch_size = self.batch_size
         acc_steps = int(eff_batch_size / self.batch_size)
         print(f"Using {acc_steps} as the default number of steps for gradient accumulation. Effective batch size: {acc_steps * self.batch_size}")
                 
@@ -122,7 +122,6 @@ class Trainer(object):
                     # we are processing the last pack of batches
                     elif curr_acc_steps == acc_steps:  # only decrease curr_acc_steps if we haven't decreased it yet
                         curr_acc_steps = len(self.data_loader) - i_batch
-                        print(f"Last pack: Set curr_acc_steps to {curr_acc_steps}.")
                 
 
                 # set to training state
@@ -191,16 +190,23 @@ class Trainer(object):
                     grad_norm = torch.nn.utils.clip_grad_norm_(self.graph.parameters(), self.max_grad_norm)
                     if self.global_step % self.scalar_log_gaps == 0:
                         self.writer.add_scalar("grad_norm/grad_norm", grad_norm, self.global_step)
-
+                """
+                else:
+                    if self.global_step % self.scalar_log_gaps == 0:
+                        
+                        # TODO define grad_norm 
+                        print(f"Type is {type(self.graph.parameters())}")
+                        print(self.graph.parameters())
+                        grad_norm = self.graph.parameters().norm
+                        self.writer.add_scalar("grad_norm/grad_norm", grad_norm, self.global_step)
+                """
+                    
                 if (curr_acc_steps == acc_steps and (i_batch+1) % curr_acc_steps == 0) or \
                    (curr_acc_steps < acc_steps and (i_batch+1) == len(self.data_loader)):
                     # step
                     self.optim.step()
                     self.graph.zero_grad()
                     self.optim.zero_grad()
-                    print(f"Call optim.step() for batch with index {i_batch}")
-                    if curr_acc_steps < acc_steps:
-                        print(f"Call optim.step() for last batch of epoch")
                 '''
                 else:  # curr_acc_steps < acc_steps, which means we are processing the last pack of batches
                     if (i_batch+1) == len(self.data_loader):
