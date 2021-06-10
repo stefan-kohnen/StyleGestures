@@ -1,7 +1,7 @@
 {
   "Dir": {
-    "data_root": "data/GENEA/with_text/processed_reducedset",
-    "log_root": "results/GENEA/expe_acc_grad"
+    "data_root": "data/GENEA/processed_notext",
+    "log_root": "results/GENEA"
   },
   "Glow": {
     "hidden_channels": 512,
@@ -45,16 +45,16 @@
     "data": "cuda:0"
   },
   "Train": {
-    "batch_size": 10,
-    "num_batches": 800,
+    "batch_size": 80,
+    "num_batches": 600,
     "max_grad_clip": 5,
     "max_grad_norm": 100,
-    "max_checkpoints": 4,
-    "checkpoints_gap": 400,
+    "max_checkpoints": 2,
+    "checkpoints_gap": 150,
     "num_plot_samples": 1,
     "scalar_log_gap": 50,
     "validation_log_gap": 50,
-    "plot_gap": 400,
+    "plot_gap": 150,
     "warm_start": ""
   },
   "Infer": {

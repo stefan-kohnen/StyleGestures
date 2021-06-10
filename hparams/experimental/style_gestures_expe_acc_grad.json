@@ -1,6 +1,6 @@
 {
   "Dir": {
-    "data_root": "data/GENEA/with_text/processed_duplicationAsInGesticulator",
+    "data_root": "data/GENEA/processed",
     "log_root": "results/GENEA/expe_acc_grad"
   },
   "Glow": {

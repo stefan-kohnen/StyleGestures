@@ -1,6 +1,6 @@
 {
   "Dir": {
-    "data_root": "data/GENEA/with_text/processed_duplicationAsInGesticulator/test",
+    "data_root": "data/GENEA/processed",
     "log_root": "results/GENEA/expe_acc_grad"
   },
   "Glow": {
@@ -58,6 +58,6 @@
     "warm_start": ""
   },
   "Infer": {
-    "pre_trained": "results/GENEA/expe_acc_grad/log_20210507_1337/checkpoints/trained.pkg"
+    "pre_trained": "results/GENEA/expe_acc_grad/log_20210510_1331/checkpoints/trained.pkg"
   }
 }

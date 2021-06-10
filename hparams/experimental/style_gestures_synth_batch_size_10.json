@@ -1,6 +1,6 @@
 {
   "Dir": {
-    "data_root": "data/GENEA/with_text/processed_1stduplicationmethod/test",
+    "data_root": "data/GENEA/processed",
     "log_root": "results/GENEA/batch_size_experiment"
   },
   "Glow": {
