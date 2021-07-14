@@ -31,7 +31,23 @@ if __name__ == "__main__":
     date = date[:date.rfind(":")].replace("-", "")\
                                  .replace(":", "")\
                                  .replace(" ", "_")
-    log_dir = os.path.join(hparams.Dir.log_root, "log_" + date)
+    # sample logdir name : log_20210415_1827__LR0.0009_BS10_SSMAX
+    if not hparams.Temp.use_train_subset:
+        ss_str = "MAX"
+    else:
+        ss_str = hparams.Temp.subset_size
+    postfix = f"__LR{hparams.Optim.args.lr}_BS{hparams.Train.batch_size}_SS{ss_str}"
+    log_dir = os.path.join(hparams.Dir.log_root, "log_" + date + postfix)
+    # TODO use "run2", "run3" as second postfix to avoid tensoboard using a single dir for several runs
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+    else:
+        cnt = 2
+        while os.path.exists(os.path.join(log_dir + f"_run{cnt}")):
+            cnt += 1
+        log_dir = log_dir + f"_run{cnt}"
+        os.makedirs(log_dir)
+
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
 		
