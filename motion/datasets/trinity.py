@@ -39,15 +39,16 @@ class Trinity():
             val_input = np.load(os.path.join(data_root, 'val_input_'+str(hparams.Data.framerate)+'fps.npz'))['clips'].astype(np.float16)
             val_output = np.load(os.path.join(data_root, 'val_output_'+str(hparams.Data.framerate)+'fps.npz'))['clips'].astype(np.float16)
             
-            # DEBUG: use portions of the data sets for faster convergence
-            num_samples = 2 * hparams.Train.batch_size            
-            use_subsets = True
-            if use_subsets:
+            if hparams.Temp.use_train_subset:
+                assert hparams.Temp.subset_size % hparams.Train.batch_size == 0, "subset_size not a multiple of batch_size"
+                num_samples = hparams.Temp.subset_size
+                print(f"num_samples: {num_samples}")  # Debug
+
                 train_input = train_input[:num_samples,:,:]
                 train_output = train_output[:num_samples,:,:]
                 val_input = val_input[:num_samples,:,:]
                 val_output = val_output[:num_samples,:,:]           
-
+                
             # Create pytorch data sets
             self.train_dataset = MotionDataset(train_input, train_output, hparams.Data.seqlen, hparams.Data.n_lookahead, hparams.Data.dropout)    
             self.validation_dataset = MotionDataset(val_input, val_output, hparams.Data.seqlen, hparams.Data.n_lookahead, hparams.Data.dropout)    
