@@ -1,2 +1,8 @@
 results/
 data/
+glow/__pycache__/
+motion/__pycache__/
+motion/datasets/__pycache__/
+visualization/__pycache__/
+wandb/
+
