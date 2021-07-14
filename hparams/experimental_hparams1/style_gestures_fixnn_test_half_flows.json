@@ -1,11 +1,11 @@
 {
   "Dir": {
     "data_root": "data/GENEA/processed",
-    "log_root": "results/GENEA/batch_size_experiment"
+    "log_root": "results/GENEA/fix_training"
   },
   "Glow": {
     "hidden_channels": 512,
-    "K": 16,
+    "K": 8,
     "actnorm_scale": 1.0,
     "flow_permutation": "invconv",
     "flow_coupling": "affine",
@@ -23,7 +23,7 @@
   "Optim": {
     "name": "adam",
     "args": {
-      "lr": 0.0015,
+      "lr": 0.009,
       "betas": [
         0.9,
         0.999
@@ -31,10 +31,8 @@
       "eps": 1e-08
     },
     "Schedule": {
-      "name": "noam_learning_rate_decay",
+      "name": "default",
       "args": {
-        "warmup_steps": 3000,
-        "minimum": 0.00015
       }
     }
   },
@@ -45,16 +43,16 @@
     "data": "cuda:0"
   },
   "Train": {
-    "batch_size": 15,
-    "num_batches": 80000,
-    "max_grad_clip": 5,
-    "max_grad_norm": 100,
-    "max_checkpoints": 4,
-    "checkpoints_gap": 40000,
-    "num_plot_samples": 1,
+    "batch_size": 10,
+    "num_batches": 10000,
+    "max_grad_clip": 0,
+    "max_grad_norm": 0,
+    "max_checkpoints": 2,
+    "checkpoints_gap": 2500,
+    "num_plot_samples": 4,
     "scalar_log_gap": 50,
     "validation_log_gap": 500,
-    "plot_gap": 40000,
+    "plot_gap": 2500,
     "warm_start": ""
   },
   "Infer": {
